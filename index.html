@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick Healthy Recipes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f6f0;--ink:#16291f;--mute:#5b6b61;--line:#cfdccf;--panel:#fff;--accent:#1f5a40;--accent-ink:#fff;--time:#f0c43c;--time-ink:#2b2200}
+body.baby{--bg:#eef3fa;--line:#cbd7e8;--accent:#2c4f86;--time:#bcd3f2;--time-ink:#14274a}
+@media (prefers-color-scheme:dark){
+:root{--bg:#121b16;--ink:#e8f0ea;--mute:#9db0a3;--line:#2a3b31;--panel:#18251e;--accent:#7fd1a3;--accent-ink:#0b1a12;--time:#d9ae2a;--time-ink:#201800}
+body.baby{--bg:#111722;--line:#27344a;--panel:#171f2e;--accent:#9dbbf0;--accent-ink:#0b1426;--time:#4a6a9e;--time-ink:#fff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Bricolage Grotesque",system-ui,sans-serif;transition:background .2s}
+.wrap{max-width:900px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.05;font-weight:800;margin:0 0 8px;letter-spacing:-.02em}
+.lede{color:var(--mute);margin:0 0 22px;max-width:56ch}
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:20px}
+.tab{font:inherit;font-weight:600;background:none;border:0;color:var(--mute);padding:10px 16px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab[aria-selected=true]{color:var(--accent);border-color:var(--accent)}
+.tab:focus-visible,.chip:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.note{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);padding:12px 14px;margin-bottom:20px;font-size:.93rem}
+.note strong{display:block;margin-bottom:2px}
+fieldset{border:0;padding:0;margin:0 0 14px}
+legend{font-weight:600;font-size:.9rem;color:var(--mute);padding:0;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.9rem;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:4px 12px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+select{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:18px 0 8px;gap:10px;flex-wrap:wrap}
+.count{color:var(--mute);font-size:.93rem}
+.reset{font:inherit;background:none;border:0;color:var(--accent);text-decoration:underline;cursor:pointer}
+ul.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.r{display:grid;grid-template-columns:76px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.t{background:var(--time);color:var(--time-ink);text-align:center;align-self:start;padding:8px 4px;border-radius:6px;line-height:1}
+.t b{display:block;font-size:1.7rem;font-weight:800}
+.t span{font-size:.75rem}
+.r h3{margin:0 0 2px;font-size:1.15rem;line-height:1.25}
+.r h3 a{color:var(--ink);text-decoration-color:var(--accent);text-underline-offset:3px}
+.r h3 a:hover{color:var(--accent)}
+.src{color:var(--mute);font-size:.85rem;margin:0 0 4px}
+.r p.d{margin:0 0 6px}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:.78rem;border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--mute)}
+.empty{padding:30px 0;color:var(--mute)}
+footer{margin-top:36px;color:var(--mute);font-size:.85rem}
+@media(max-width:480px){.r{grid-template-columns:62px 1fr;gap:12px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Quick healthy recipes</h1>
+<p class="lede">Simple, nutritious recipes from across the web, filterable by protein, cuisine and time. Each link opens the recipe on its original site.</p>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="tab-adult" aria-selected="true" data-sec="adult">Everyday meals</button>
+  <button class="tab" role="tab" id="tab-baby" aria-selected="false" data-sec="baby">Starting solids (baby)</button>
+</div>
+
+<div id="babynote" class="note" hidden>
+  <strong>Before you start</strong>
+  Most babies begin solids around 6 months, when they sit with support and show interest in food. Check with your pediatrician first. No honey before age 1, no added salt or sugar, and cut foods to a safe size and texture for your baby's stage. Introduce common allergens (egg, peanut, fish) as your pediatrician advises.
+</div>
+
+<div id="filters"></div>
+<div class="bar"><span class="count" id="count" aria-live="polite"></span><button class="reset" id="reset">Clear filters</button></div>
+<ul class="list" id="list"></ul>
+
+<footer>Recipes belong to their original authors. Add your own by editing the <code>RECIPES</code> list in this file.</footer>
+</div>
+
+<script>
+/* ---------- DATA ----------
+   Fields: t=title, src=source site, url=direct link (optional; if empty, a search link is used),
+   time=minutes, d=description, p=proteins/main foods, c=cuisines, stage (baby only), tex (baby only)  */
+const RECIPES = {
+adult: [
+ {t:"Sheet-Pan Lemon Herb Chicken & Vegetables",src:"Skinnytaste",time:35,d:"Chicken thighs, potatoes and green beans roasted on one tray.",p:["Chicken"],c:["Mediterranean"]},
+ {t:"Teriyaki Salmon Rice Bowls",src:"Skinnytaste",time:25,d:"Glazed salmon over brown rice with cucumber and edamame.",p:["Fish & seafood"],c:["Japanese"]},
+ {t:"Red Lentil Dal",src:"Cookie and Kate",time:30,d:"Creamy spiced lentils with spinach. Freezes well.",p:["Beans & lentils"],c:["Indian"]},
+ {t:"Chickpea Shakshuka",src:"Love and Lemons",time:25,d:"Eggs poached in spiced tomato and chickpea sauce.",p:["Eggs","Beans & lentils"],c:["Middle Eastern"]},
+ {t:"Black Bean Tacos with Cabbage Slaw",src:"Budget Bytes",time:20,d:"Smoky black beans, crunchy slaw and lime.",p:["Beans & lentils"],c:["Mexican"]},
+ {t:"Chicken Fajita Sheet Pan",src:"Skinnytaste",time:30,d:"Peppers, onions and chicken strips roasted together.",p:["Chicken"],c:["Mexican"]},
+ {t:"Garlic Shrimp with Zucchini Noodles",src:"Skinnytaste",time:15,d:"Fast, light and low carb.",p:["Fish & seafood"],c:["Italian"]},
+ {t:"Tofu & Vegetable Stir-Fry",src:"Minimalist Baker",time:20,d:"Crispy tofu with broccoli and peppers in a ginger-garlic sauce.",p:["Tofu & tempeh"],c:["Chinese"]},
+ {t:"Turkey Taco Lettuce Wraps",src:"Cookie and Kate",time:20,d:"Lean ground turkey in crisp lettuce cups.",p:["Turkey"],c:["Mexican"]},
+ {t:"Greek Chickpea Salad",src:"Mediterranean Dish",time:10,d:"Cucumber, tomato, olives and feta. No cooking.",p:["Beans & lentils"],c:["Greek"]},
+ {t:"Egg Fried Cauliflower Rice",src:"Healthy Little Peach",time:15,d:"Veg-packed fried rice with scrambled egg and peas.",p:["Eggs"],c:["Chinese"]},
+ {t:"Miso-Glazed Tofu Bowls",src:"Love and Lemons",time:25,d:"Baked tofu, rice and greens with a miso glaze.",p:["Tofu & tempeh"],c:["Japanese"]},
+ {t:"Tuna & White Bean Salad",src:"Love and Lemons",time:10,d:"Pantry staples, lemon and herbs.",p:["Fish & seafood","Beans & lentils"],c:["Italian"]},
+ {t:"Beef & Broccoli",src:"RecipeTin Eats",time:25,d:"Tender sliced beef in a savory sauce.",p:["Beef"],c:["Chinese"]},
+ {t:"Thai Basil Chicken (Pad Krapow)",src:"RecipeTin Eats",time:20,d:"Spicy minced chicken with holy basil over rice.",p:["Chicken"],c:["Thai"]},
+ {t:"Baked Cod with Tomatoes & Olives",src:"Mediterranean Dish",time:25,d:"One-dish fish with a bright tomato sauce.",p:["Fish & seafood"],c:["Mediterranean"]},
+ {t:"Coconut Chickpea Curry",src:"Minimalist Baker",time:30,d:"Chickpeas and spinach in a mild coconut curry.",p:["Beans & lentils"],c:["Indian"]},
+ {t:"Korean Beef Bowls",src:"Budget Bytes",time:20,d:"Sweet-savory ground beef with rice and veggies.",p:["Beef"],c:["Korean"]},
+ {t:"Spinach & Feta Frittata",src:"Skinnytaste",time:25,d:"Protein-rich and good warm or cold.",p:["Eggs"],c:["Greek"]},
+ {t:"Pork Tenderloin with Apples",src:"Serious Eats",time:35,d:"Lean pork seared and finished in the oven.",p:["Pork"],c:["American"]},
+ {t:"Peanut Tofu Noodles",src:"Minimalist Baker",time:20,d:"Whole-wheat noodles, tofu and a peanut-lime sauce.",p:["Tofu & tempeh"],c:["Thai"]},
+ {t:"Chicken Tikka Sheet Pan",src:"Cookie and Kate",time:40,d:"Yogurt-marinated chicken roasted with cauliflower.",p:["Chicken"],c:["Indian"]}
+],
+baby: [
+ {t:"Beef & Sweet Potato Purée",src:"Solid Starts",time:40,d:"Iron-rich beef blended smooth with sweet potato.",p:["Beef"],stage:"6 months+",tex:"Purée"},
+ {t:"Avocado Spears",src:"Solid Starts",time:5,d:"Ripe avocado cut into thick spears. Easy to grip.",p:["Fruit & veg"],stage:"6 months+",tex:"Finger food"},
+ {t:"Soft Salmon Strips",src:"Feeding Littles",time:20,d:"Baked salmon flaked or cut into soft strips. Remove all bones.",p:["Fish"],stage:"6 months+",tex:"Finger food"},
+ {t:"Lentil & Carrot Mash",src:"Healthy Little Peach",time:25,d:"Soft-cooked red lentils mashed with carrot.",p:["Beans & tofu"],stage:"6 months+",tex:"Mash"},
+ {t:"Omelet Strips",src:"Solid Starts",time:10,d:"Thin, fully cooked omelet cut into strips.",p:["Egg"],stage:"6 months+",tex:"Finger food"},
+ {t:"Oatmeal with Pear Purée",src:"Healthy Little Peach",time:10,d:"Iron-fortified or plain oats with soft-cooked pear.",p:["Grains"],stage:"6 months+",tex:"Purée"},
+ {t:"Chicken & Apple Purée",src:"Feeding Littles",time:30,d:"Poached chicken blended with cooked apple.",p:["Chicken"],stage:"6 months+",tex:"Purée"},
+ {t:"Soft Baked Tofu Sticks",src:"Solid Starts",time:20,d:"Firm tofu baked until just firm on the outside.",p:["Beans & tofu"],stage:"6 months+",tex:"Finger food"},
+ {t:"Banana Oat Pancakes",src:"Healthy Little Peach",time:15,d:"Just banana, egg and oats. No added sugar.",p:["Egg","Grains"],stage:"8 months+",tex:"Finger food"},
+ {t:"Hummus with Soft Veggie Sticks",src:"Feeding Littles",time:10,d:"Smooth hummus with steamed carrot or zucchini sticks.",p:["Beans & tofu","Fruit & veg"],stage:"8 months+",tex:"Finger food"},
+ {t:"Veggie Frittata Muffins",src:"Healthy Little Peach",time:25,d:"Mini egg bites with spinach and zucchini.",p:["Egg","Fruit & veg"],stage:"10 months+",tex:"Finger food"},
+ {t:"Mild Chicken & Veggie Pasta",src:"Feeding Littles",time:25,d:"Small pasta shapes with shredded chicken and soft veg.",p:["Chicken","Grains"],stage:"10 months+",tex:"Chopped"}
+]};
+
+const CONFIG = {
+ adult:{filters:[["p","Protein or main ingredient"],["c","Cuisine"]]},
+ baby:{filters:[["stage","Stage"],["p","Main food"],["tex","Texture"]]}
+};
+const TIMES=[["Any time",999],["15 min or less",15],["30 min or less",30],["45 min or less",45]];
+let sec="adult", state={};
+
+const $=id=>document.getElementById(id);
+const arr=v=>Array.isArray(v)?v:[v];
+const link=r=>r.url||("https://www.google.com/search?q="+encodeURIComponent(r.t+" recipe "+r.src));
+
+function opts(key){return [...new Set(RECIPES[sec].flatMap(r=>arr(r[key])))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))}
+
+function build(){
+ state={max:999};
+ CONFIG[sec].filters.forEach(([k])=>state[k]=new Set());
+ let h="";
+ CONFIG[sec].filters.forEach(([k,label])=>{
+  h+=`<fieldset><legend>${label}</legend><div class="chips">`+
+   opts(k).map(o=>`<button class="chip" aria-pressed="false" data-k="${k}" data-v="${o}">${o}</button>`).join("")+`</div></fieldset>`;
+ });
+ h+=`<fieldset><legend>Total time</legend><select id="time" aria-label="Maximum total time">`+
+   TIMES.map(([l,v])=>`<option value="${v}">${l}</option>`).join("")+`</select></fieldset>`;
+ $("filters").innerHTML=h;
+ render();
+}
+
+function render(){
+ const f=CONFIG[sec].filters;
+ const rows=RECIPES[sec].filter(r=>r.time<=state.max && f.every(([k])=>!state[k].size||arr(r[k]).some(v=>state[k].has(v))))
+  .sort((a,b)=>a.time-b.time);
+ $("count").textContent=rows.length+" recipe"+(rows.length===1?"":"s");
+ $("list").innerHTML=rows.length?rows.map(r=>{
+  const tags=[...arr(r.p),...(r.c?arr(r.c):[]),...(r.stage?[r.stage,r.tex]:[])];
+  return `<li class="r"><div class="t"><b>${r.time}</b><span>min</span></div><div>
+   <h3><a href="${link(r)}" target="_blank" rel="noopener">${r.t}</a></h3>
+   <p class="src">${r.src}</p><p class="d">${r.d}</p>
+   <div class="tags">${tags.map(x=>`<span class="tag">${x}</span>`).join("")}</div></div></li>`}).join("")
+  :`<li class="empty">No recipes match all of these filters. Remove one to see more.</li>`;
+}
+
+$("filters").addEventListener("click",e=>{
+ const b=e.target.closest(".chip"); if(!b) return;
+ const s=state[b.dataset.k], v=b.dataset.v;
+ s.has(v)?s.delete(v):s.add(v);
+ b.setAttribute("aria-pressed",s.has(v));
+ render();
+});
+$("filters").addEventListener("change",e=>{if(e.target.id==="time"){state.max=+e.target.value;render()}});
+$("reset").addEventListener("click",build);
+
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+ sec=t.dataset.sec;
+ document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));
+ document.body.classList.toggle("baby",sec==="baby");
+ $("babynote").hidden=sec!=="baby";
+ build();
+}));
+build();
+</script>
+</body>
+</html>
