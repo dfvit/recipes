@@ -44,6 +44,8 @@ ul.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
 .r p.d{margin:0 0 6px}
 .tags{display:flex;flex-wrap:wrap;gap:4px}
 .tag{font-size:.78rem;border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--mute)}
+.new{margin-left:8px;font-size:.72rem;font-weight:600;background:var(--accent);color:var(--accent-ink);border-radius:4px;padding:1px 6px;vertical-align:middle}
+.suggest{color:var(--accent);font-weight:600}
 .empty{padding:30px 0;color:var(--mute)}
 footer{margin-top:36px;color:var(--mute);font-size:.85rem}
 @media(max-width:480px){.r{grid-template-columns:62px 1fr;gap:12px}}
@@ -66,71 +68,31 @@ footer{margin-top:36px;color:var(--mute);font-size:.85rem}
 </div>
 
 <div id="filters"></div>
-<div class="bar"><span class="count" id="count" aria-live="polite"></span><button class="reset" id="reset">Clear filters</button></div>
+<div class="bar"><span class="count" id="count" aria-live="polite"></span><span><a class="suggest" id="suggest" href="#" target="_blank" rel="noopener">Suggest a recipe</a> &nbsp; <button class="reset" id="reset">Clear filters</button></span></div>
 <ul class="list" id="list"></ul>
 
-<footer>Recipes belong to their original authors. Add your own by editing the <code>RECIPES</code> list in this file.</footer>
+<footer>Recipes belong to their original authors; every link goes to the source site. New recipes are added from approved suggestions.</footer>
 </div>
 
 <script>
-/* ---------- DATA ----------
-   Fields: t=title, src=source site, url=direct link (optional; if empty, a search link is used),
-   time=minutes, d=description, p=proteins/main foods, c=cuisines, stage (baby only), tex (baby only)  */
-const RECIPES = {
-adult: [
- {t:"Sheet-Pan Lemon Herb Chicken & Vegetables",src:"Skinnytaste",time:35,d:"Chicken thighs, potatoes and green beans roasted on one tray.",p:["Chicken"],c:["Mediterranean"]},
- {t:"Teriyaki Salmon Rice Bowls",src:"Skinnytaste",time:25,d:"Glazed salmon over brown rice with cucumber and edamame.",p:["Fish & seafood"],c:["Japanese"]},
- {t:"Red Lentil Dal",src:"Cookie and Kate",time:30,d:"Creamy spiced lentils with spinach. Freezes well.",p:["Beans & lentils"],c:["Indian"]},
- {t:"Chickpea Shakshuka",src:"Love and Lemons",time:25,d:"Eggs poached in spiced tomato and chickpea sauce.",p:["Eggs","Beans & lentils"],c:["Middle Eastern"]},
- {t:"Black Bean Tacos with Cabbage Slaw",src:"Budget Bytes",time:20,d:"Smoky black beans, crunchy slaw and lime.",p:["Beans & lentils"],c:["Mexican"]},
- {t:"Chicken Fajita Sheet Pan",src:"Skinnytaste",time:30,d:"Peppers, onions and chicken strips roasted together.",p:["Chicken"],c:["Mexican"]},
- {t:"Garlic Shrimp with Zucchini Noodles",src:"Skinnytaste",time:15,d:"Fast, light and low carb.",p:["Fish & seafood"],c:["Italian"]},
- {t:"Tofu & Vegetable Stir-Fry",src:"Minimalist Baker",time:20,d:"Crispy tofu with broccoli and peppers in a ginger-garlic sauce.",p:["Tofu & tempeh"],c:["Chinese"]},
- {t:"Turkey Taco Lettuce Wraps",src:"Cookie and Kate",time:20,d:"Lean ground turkey in crisp lettuce cups.",p:["Turkey"],c:["Mexican"]},
- {t:"Greek Chickpea Salad",src:"Mediterranean Dish",time:10,d:"Cucumber, tomato, olives and feta. No cooking.",p:["Beans & lentils"],c:["Greek"]},
- {t:"Egg Fried Cauliflower Rice",src:"Healthy Little Peach",time:15,d:"Veg-packed fried rice with scrambled egg and peas.",p:["Eggs"],c:["Chinese"]},
- {t:"Miso-Glazed Tofu Bowls",src:"Love and Lemons",time:25,d:"Baked tofu, rice and greens with a miso glaze.",p:["Tofu & tempeh"],c:["Japanese"]},
- {t:"Tuna & White Bean Salad",src:"Love and Lemons",time:10,d:"Pantry staples, lemon and herbs.",p:["Fish & seafood","Beans & lentils"],c:["Italian"]},
- {t:"Beef & Broccoli",src:"RecipeTin Eats",time:25,d:"Tender sliced beef in a savory sauce.",p:["Beef"],c:["Chinese"]},
- {t:"Thai Basil Chicken (Pad Krapow)",src:"RecipeTin Eats",time:20,d:"Spicy minced chicken with holy basil over rice.",p:["Chicken"],c:["Thai"]},
- {t:"Baked Cod with Tomatoes & Olives",src:"Mediterranean Dish",time:25,d:"One-dish fish with a bright tomato sauce.",p:["Fish & seafood"],c:["Mediterranean"]},
- {t:"Coconut Chickpea Curry",src:"Minimalist Baker",time:30,d:"Chickpeas and spinach in a mild coconut curry.",p:["Beans & lentils"],c:["Indian"]},
- {t:"Korean Beef Bowls",src:"Budget Bytes",time:20,d:"Sweet-savory ground beef with rice and veggies.",p:["Beef"],c:["Korean"]},
- {t:"Spinach & Feta Frittata",src:"Skinnytaste",time:25,d:"Protein-rich and good warm or cold.",p:["Eggs"],c:["Greek"]},
- {t:"Pork Tenderloin with Apples",src:"Serious Eats",time:35,d:"Lean pork seared and finished in the oven.",p:["Pork"],c:["American"]},
- {t:"Peanut Tofu Noodles",src:"Minimalist Baker",time:20,d:"Whole-wheat noodles, tofu and a peanut-lime sauce.",p:["Tofu & tempeh"],c:["Thai"]},
- {t:"Chicken Tikka Sheet Pan",src:"Cookie and Kate",time:40,d:"Yogurt-marinated chicken roasted with cauliflower.",p:["Chicken"],c:["Indian"]}
-],
-baby: [
- {t:"Beef & Sweet Potato Purée",src:"Solid Starts",time:40,d:"Iron-rich beef blended smooth with sweet potato.",p:["Beef"],stage:"6 months+",tex:"Purée"},
- {t:"Avocado Spears",src:"Solid Starts",time:5,d:"Ripe avocado cut into thick spears. Easy to grip.",p:["Fruit & veg"],stage:"6 months+",tex:"Finger food"},
- {t:"Soft Salmon Strips",src:"Feeding Littles",time:20,d:"Baked salmon flaked or cut into soft strips. Remove all bones.",p:["Fish"],stage:"6 months+",tex:"Finger food"},
- {t:"Lentil & Carrot Mash",src:"Healthy Little Peach",time:25,d:"Soft-cooked red lentils mashed with carrot.",p:["Beans & tofu"],stage:"6 months+",tex:"Mash"},
- {t:"Omelet Strips",src:"Solid Starts",time:10,d:"Thin, fully cooked omelet cut into strips.",p:["Egg"],stage:"6 months+",tex:"Finger food"},
- {t:"Oatmeal with Pear Purée",src:"Healthy Little Peach",time:10,d:"Iron-fortified or plain oats with soft-cooked pear.",p:["Grains"],stage:"6 months+",tex:"Purée"},
- {t:"Chicken & Apple Purée",src:"Feeding Littles",time:30,d:"Poached chicken blended with cooked apple.",p:["Chicken"],stage:"6 months+",tex:"Purée"},
- {t:"Soft Baked Tofu Sticks",src:"Solid Starts",time:20,d:"Firm tofu baked until just firm on the outside.",p:["Beans & tofu"],stage:"6 months+",tex:"Finger food"},
- {t:"Banana Oat Pancakes",src:"Healthy Little Peach",time:15,d:"Just banana, egg and oats. No added sugar.",p:["Egg","Grains"],stage:"8 months+",tex:"Finger food"},
- {t:"Hummus with Soft Veggie Sticks",src:"Feeding Littles",time:10,d:"Smooth hummus with steamed carrot or zucchini sticks.",p:["Beans & tofu","Fruit & veg"],stage:"8 months+",tex:"Finger food"},
- {t:"Veggie Frittata Muffins",src:"Healthy Little Peach",time:25,d:"Mini egg bites with spinach and zucchini.",p:["Egg","Fruit & veg"],stage:"10 months+",tex:"Finger food"},
- {t:"Mild Chicken & Veggie Pasta",src:"Feeding Littles",time:25,d:"Small pasta shapes with shredded chicken and soft veg.",p:["Chicken","Grains"],stage:"10 months+",tex:"Chopped"}
-]};
-
+let RECIPES={adult:[],baby:[]}; // loaded from recipes.json
+const REPO_OVERRIDE=""; // set to "owner/repo" if not hosted on github.io
 const CONFIG = {
  adult:{filters:[["p","Protein or main ingredient"],["c","Cuisine"]]},
  baby:{filters:[["stage","Stage"],["p","Main food"],["tex","Texture"]]}
 };
-const TIMES=[["Any time",999],["15 min or less",15],["30 min or less",30],["45 min or less",45]];
+const TIMES=[["Any time",999],["15 min or less",15],["30 min or less",30],["45 min or less",45],["60 min or less",60]];
 let sec="adult", state={};
 
 const $=id=>document.getElementById(id);
 const arr=v=>Array.isArray(v)?v:[v];
-const link=r=>r.url||("https://www.google.com/search?q="+encodeURIComponent(r.t+" recipe "+r.src));
+const link=r=>r.url;
+const isNew=r=>r.added&&(Date.now()-new Date(r.added))<21*864e5;
 
 function opts(key){return [...new Set(RECIPES[sec].flatMap(r=>arr(r[key])))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))}
 
 function build(){
- state={max:999};
+ state={max:999,sort:"quick"};
  CONFIG[sec].filters.forEach(([k])=>state[k]=new Set());
  let h="";
  CONFIG[sec].filters.forEach(([k,label])=>{
@@ -138,7 +100,7 @@ function build(){
    opts(k).map(o=>`<button class="chip" aria-pressed="false" data-k="${k}" data-v="${o}">${o}</button>`).join("")+`</div></fieldset>`;
  });
  h+=`<fieldset><legend>Total time</legend><select id="time" aria-label="Maximum total time">`+
-   TIMES.map(([l,v])=>`<option value="${v}">${l}</option>`).join("")+`</select></fieldset>`;
+   TIMES.map(([l,v])=>`<option value="${v}">${l}</option>`).join("")+`</select></fieldset><fieldset><legend>Sort by</legend><select id="sort" aria-label="Sort recipes"><option value="quick">Quickest first</option><option value="new">Newest first</option></select></fieldset>`;
  $("filters").innerHTML=h;
  render();
 }
@@ -146,12 +108,12 @@ function build(){
 function render(){
  const f=CONFIG[sec].filters;
  const rows=RECIPES[sec].filter(r=>r.time<=state.max && f.every(([k])=>!state[k].size||arr(r[k]).some(v=>state[k].has(v))))
-  .sort((a,b)=>a.time-b.time);
+  .sort((a,b)=>state.sort==="new"?(b.added||"").localeCompare(a.added||"")||a.time-b.time:a.time-b.time);
  $("count").textContent=rows.length+" recipe"+(rows.length===1?"":"s");
  $("list").innerHTML=rows.length?rows.map(r=>{
   const tags=[...arr(r.p),...(r.c?arr(r.c):[]),...(r.stage?[r.stage,r.tex]:[])];
   return `<li class="r"><div class="t"><b>${r.time}</b><span>min</span></div><div>
-   <h3><a href="${link(r)}" target="_blank" rel="noopener">${r.t}</a></h3>
+   <h3><a href="${link(r)}" target="_blank" rel="noopener">${r.t}</a>${isNew(r)?'<span class="new">New</span>':""}</h3>
    <p class="src">${r.src}</p><p class="d">${r.d}</p>
    <div class="tags">${tags.map(x=>`<span class="tag">${x}</span>`).join("")}</div></div></li>`}).join("")
   :`<li class="empty">No recipes match all of these filters. Remove one to see more.</li>`;
@@ -164,7 +126,7 @@ $("filters").addEventListener("click",e=>{
  b.setAttribute("aria-pressed",s.has(v));
  render();
 });
-$("filters").addEventListener("change",e=>{if(e.target.id==="time"){state.max=+e.target.value;render()}});
+$("filters").addEventListener("change",e=>{if(e.target.id==="time")state.max=+e.target.value;else if(e.target.id==="sort")state.sort=e.target.value;else return;render()});
 $("reset").addEventListener("click",build);
 
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
@@ -174,7 +136,10 @@ document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
  $("babynote").hidden=sec!=="baby";
  build();
 }));
-build();
+const [o,rp]=REPO_OVERRIDE?REPO_OVERRIDE.split("/"):[location.hostname.split(".")[0],location.pathname.split("/")[1]||location.hostname.split(".")[0]+".github.io"];
+$("suggest").href=`https://github.com/${o}/${rp}/issues/new?template=add-recipe.yml`;
+fetch("recipes.json",{cache:"no-cache"}).then(r=>r.json()).then(j=>{RECIPES=j;build()})
+ .catch(()=>{build();$("list").innerHTML='<li class="empty">Could not load recipes.json. If you opened this file directly, serve it from a web server or GitHub Pages.</li>'});
 </script>
 </body>
 </html>

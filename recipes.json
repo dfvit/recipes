@@ -1,0 +1,13 @@
+{
+ "adult": [
+  {"t":"Sheet-Pan Balsamic-Herb Chicken and Vegetables","src":"Skinnytaste","url":"https://www.skinnytaste.com/sheet-pan-balsamic-herb-chicken-and-vegetables/","time":30,"d":"Chicken and mixed vegetables seasoned with balsamic and herbs, roasted on one pan.","p":["Chicken"],"c":["American"],"added":"2026-10-05"},
+  {"t":"10-Minute Thai Basil Chicken (Gai Pad Krapow)","src":"The Woks of Life","url":"https://thewoksoflife.com/thai-basil-chicken-pad-krapow/","time":10,"d":"Ground chicken stir-fried with basil. About 3 minutes of prep and 7 of cooking.","p":["Chicken"],"c":["Thai"],"added":"2026-10-05"},
+  {"t":"Sheet Pan Lemon Herb Chicken","src":"Julia's Cuisine","url":"https://juliascuisine.com/sheet-pan-lemon-herb-chicken","time":60,"d":"Chicken thighs, potatoes and green beans roasted with lemon herb butter. Mostly hands-off.","p":["Chicken"],"c":["American"],"added":"2026-10-05"},
+  {"t":"Red Lentil Dal","src":"Forks Over Knives","url":"https://shop.forksoverknives.com/blogs/news/red-lentil-dal","time":45,"d":"Red lentils simmered with ginger and warm spices, served with rice or bread.","p":["Beans & lentils"],"c":["Indian"],"added":"2026-10-05"},
+  {"t":"Easy Teriyaki Salmon Rice Bowl","src":"Bites with Bri","url":"https://biteswithbri.com/teriyaki-salmon-rice-bowl/","time":30,"d":"Air-fried salmon over rice with fresh vegetables and teriyaki sauce.","p":["Fish & seafood"],"c":["Japanese"],"added":"2026-10-05"},
+  {"t":"Sheet Pan Teriyaki Salmon Bowl","src":"Food Network Kitchen","url":"https://www.foodnetwork.com/recipes/food-network-kitchen/sheet-pan-teriyaki-salmon-bowl-18868590.amp","time":25,"d":"Canned salmon, frozen rice and stir-fry vegetables baked together on one sheet pan.","p":["Fish & seafood"],"c":["Japanese"],"added":"2026-10-05"}
+ ],
+ "baby": [
+  {"t":"Avocado: how to serve for baby-led weaning","src":"Solid Starts","url":"https://solidstarts.com/foods/avocado/","time":5,"d":"Age-by-age guide to cutting and serving avocado, starting with thick spears at 6 months.","p":["Fruit & veg"],"stage":"6 months+","tex":"Finger food","added":"2026-10-05"}
+ ]
+}
