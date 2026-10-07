@@ -1,0 +1,51 @@
+name: Add approved recipe
+# Add the "approved" label to a recipe-suggestion issue to publish it.
+# Only people with write/triage access can add labels.
+on:
+  issues:
+    types: [labeled]
+permissions:
+  contents: write
+  issues: write
+jobs:
+  add:
+    if: github.event.label.name == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = context.payload.issue.body || '';
+            const get = l => {
+              const m = body.match(new RegExp('### ' + l + '\\s*\\n\\n([\\s\\S]*?)(?=\\n### |$)'));
+              const v = m ? m[1].trim() : '';
+              return v === '_No response_' ? '' : v.replace(/[<>"]/g, '');
+            };
+            const fail = async msg => {
+              await github.rest.issues.createComment({...context.repo, issue_number: context.issue.number, body: msg});
+              core.setFailed(msg);
+            };
+            const url = get('Recipe URL'), mins = parseInt(get('Total time in minutes'), 10);
+            if (!/^https?:\/\//.test(url) || !(mins > 0)) return fail('Needs a valid URL and a numeric time in minutes. Please edit the issue and re-add the label.');
+            const data = JSON.parse(fs.readFileSync('recipes.json', 'utf8'));
+            if ([...data.adult, ...data.baby].some(r => r.url === url)) return fail('This recipe URL is already listed.');
+            const list = s => s.split(',').map(x => x.trim()).filter(Boolean);
+            const baby = get('Section') === 'Baby';
+            const r = {t: get('Title'), src: get('Source site'), url, time: mins, d: get('Short description'), p: list(get('Main foods')), added: new Date().toISOString().slice(0, 10)};
+            if (baby) { r.stage = get('Baby stage'); r.tex = get('Baby texture'); } else { r.c = list(get('Cuisine')); }
+            if (baby && (!r.stage || !r.tex)) return fail('Baby recipes need a stage and texture. Please edit the issue and re-add the label.');
+            data[baby ? 'baby' : 'adult'].push(r);
+            fs.writeFileSync('recipes.json', JSON.stringify(data, null, 1) + '\n');
+      - run: |
+          git config user.name "recipe-bot"
+          git config user.email "recipe-bot@users.noreply.github.com"
+          git add recipes.json
+          git commit -m "Add recipe from issue #${{ github.event.issue.number }}"
+          git push
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({...context.repo, issue_number: context.issue.number, body: 'Added. It will show up on the site in a minute or two.'});
+            await github.rest.issues.update({...context.repo, issue_number: context.issue.number, state: 'closed'});
