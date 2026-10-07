@@ -1,0 +1,62 @@
+name: Add a recipe
+description: Suggest an easy, healthy recipe for the site
+title: "Recipe: "
+labels: ["recipe-suggestion"]
+body:
+  - type: dropdown
+    id: section
+    attributes:
+      label: Section
+      options: [Everyday meals, Baby]
+    validations: {required: true}
+  - type: input
+    id: title
+    attributes: {label: Title}
+    validations: {required: true}
+  - type: input
+    id: url
+    attributes:
+      label: Recipe URL
+      description: Direct link to the recipe page
+    validations: {required: true}
+  - type: input
+    id: source
+    attributes:
+      label: Source site
+      description: For example, Skinnytaste
+    validations: {required: true}
+  - type: input
+    id: minutes
+    attributes:
+      label: Total time in minutes
+      description: Numbers only
+    validations: {required: true}
+  - type: input
+    id: description
+    attributes:
+      label: Short description
+      description: One sentence in your own words
+    validations: {required: true}
+  - type: input
+    id: foods
+    attributes:
+      label: Main foods
+      description: "Comma separated, e.g. Chicken, Beef, Pork, Turkey, Fish & seafood, Eggs, Beans & lentils, Tofu & tempeh. For baby: Fruit & veg, Grains."
+    validations: {required: true}
+  - type: input
+    id: cuisine
+    attributes:
+      label: Cuisine
+      description: Everyday meals only, e.g. Thai
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Baby stage
+      description: Baby recipes only
+      options: [6 months+, 8 months+, 10 months+, 12 months+]
+  - type: dropdown
+    id: texture
+    attributes:
+      label: Baby texture
+      description: Baby recipes only
+      options: [Purée, Mash, Finger food, Chopped]
