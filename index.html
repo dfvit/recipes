@@ -61,7 +61,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .ce{font-size:1.7rem;line-height:1}
 .cat ul{list-style:none;margin:0;padding:0}
 .cat label{position:relative;display:flex;align-items:center;gap:8px;padding:4px 2px;cursor:pointer;min-height:38px}
-.cat input{position:absolute;opacity:0;width:22px;height:22px;margin:0}
+.cat label input{position:absolute;opacity:0;width:22px;height:22px;margin:0}
 .box{width:22px;height:22px;border:2px solid var(--accent);border-radius:7px;flex:none;display:grid;place-items:center;background:var(--bg)}
 input:checked+.box{background:var(--accent)}
 input:checked+.box::after{content:"\2713";color:var(--accent-ink);font-weight:800;font-size:.9rem;line-height:1}
@@ -73,6 +73,20 @@ input:checked~.fn{color:var(--mute)}
 .pt{display:flex;justify-content:space-between;align-items:center;font-weight:600;margin-bottom:8px}
 .pbar{height:12px;background:var(--line);border-radius:99px;overflow:hidden}
 .pbar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .3s}
+.cat li.cu{display:flex;align-items:center}
+.cat li.cu label{flex:1}
+.rm{background:none;border:0;color:var(--mute);font-size:1.3rem;cursor:pointer;padding:4px 8px;line-height:1}
+.add{display:flex;gap:6px;margin-top:8px}
+.add input{flex:1;min-width:0;font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.add button{font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:6px 14px;cursor:pointer}
+.add input:focus-visible,.add button:focus-visible,.rm:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.msg{display:block;min-height:1.1em;color:var(--mute);font-size:.8rem;margin-top:2px}
+.pt{flex-wrap:wrap;gap:6px}
+.add input.em{flex:none;width:3.4em;text-align:center}
+.addbox{margin-top:14px;background:var(--panel);border:2px dashed var(--accent);border-radius:18px;padding:12px 14px}
+.addbox h3{margin:0 0 6px;font-size:1rem}
+.rest{margin:0 0 12px}
+.dg{margin-top:10px}
 .empty{padding:30px 0;color:var(--mute)}
 footer{margin-top:36px;color:var(--mute);font-size:.85rem}
 @media(max-width:480px){.r{grid-template-columns:62px 1fr;gap:12px}}
@@ -177,39 +191,84 @@ const FOODS=[
 ["Dairy","🧀",["Butter 🧈","Cheddar 🧀","Cream cheese 🧀","Greek yogurt 🥛","Mozzarella 🧀","Ricotta 🧀"]],
 ["Herbs & Spices","🌿",["Basil 🌿","Cilantro 🌿","Cinnamon 🟤","Curry powder 🍛","Dill 🌿","Garlic 🧄","Lemongrass 🌾","Mint 🍃","Nutmeg 🟤","Onion 🧅","Paprika 🌶️","Parsley 🌿","Rosemary 🌿","Turmeric 🟡"]],
 ["Allergens","🥚",["Cow's milk 🥛","Egg 🥚","Peanut 🥜","Sesame ⚪","Shellfish 🦐","Soy 🫘","Tree nuts 🌰","Wheat 🌾"]]];
-const KEY="firstFoodsChecked", TOTAL=FOODS.reduce((n,g)=>n+g[2].length,0);
+const K={done:"firstFoodsChecked",custom:"firstFoodsCustom",hidden:"firstFoodsHidden",groups:"firstFoodsGroups"};
 const nm=s=>s.slice(0,s.lastIndexOf(" "));
-let done=new Set();
-try{done=new Set(JSON.parse(localStorage.getItem(KEY)||"[]"))}catch(e){}
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let done=new Set(load(K.done,[])), hidden=new Set(load(K.hidden,[])), custom=load(K.custom,{}), groups=load(K.groups,[]);
 Object.entries({"Aubergine": "Eggplant", "Beetroot": "Beet", "Courgette": "Zucchini", "Sweetcorn": "Corn", "Satsuma": "Mandarin", "Coriander": "Cilantro"}).forEach(([o,n])=>{if(done.delete(o))done.add(n)});
-const saveDone=()=>{try{localStorage.setItem(KEY,JSON.stringify([...done]))}catch(e){}};
+const saveAll=()=>{store(K.done,[...done]);store(K.hidden,[...hidden]);store(K.custom,custom);store(K.groups,groups)};
+const allGroups=()=>[...FOODS.map(g=>({name:g[0],e:g[1],base:g[2]})),...groups.map(g=>({name:g.name,e:g.e,base:[],cg:1}))];
+const itemsOf=g=>[...g.base.map(s=>({n:nm(s),e:s.slice(nm(s).length+1),b:1})).filter(x=>!hidden.has(x.n)),...(custom[g.name]||[])];
+let openMap={}, edit=false;
+const isOpen=n=>openMap[n]!==false;
 function updateCounts(){
- const n=FOODS.reduce((t,g)=>t+g[2].filter(s=>done.has(nm(s))).length,0);
- $("ptxt").textContent=n===TOTAL?"🎉 All "+TOTAL+" foods tried!":n+" of "+TOTAL+" foods tried";
- $("pfill").style.width=(n/TOTAL*100)+"%";
- FOODS.forEach(([,,items],gi)=>{const c=items.filter(s=>done.has(nm(s))).length;
-  $("cc"+gi).textContent=c===items.length?"🎉 all tried!":c+"/"+items.length});
+ const gs=allGroups(), T=gs.reduce((t,g)=>t+itemsOf(g).length,0);
+ const n=gs.reduce((t,g)=>t+itemsOf(g).filter(x=>done.has(x.n)).length,0);
+ $("ptxt").textContent=T&&n===T?"🎉 All "+T+" foods tried!":n+" of "+T+" foods tried";
+ $("pfill").style.width=(T?n/T*100:0)+"%";
+ gs.forEach((g,gi)=>{const it=itemsOf(g),c=it.filter(x=>done.has(x.n)).length;
+  $("cc"+gi).textContent=it.length&&c===it.length?"🎉 all tried!":c+"/"+it.length});
 }
-let openSec=FOODS.map(()=>true);
 function drawChecklist(){
- $("checklist").innerHTML=`<div class="prog"><div class="pt"><span id="ptxt"></span><span><button class="reset" id="ckfold">${openSec.some(Boolean)?"Collapse all":"Expand all"}</button> &nbsp; <button class="reset" id="ckreset">Reset</button></span></div><div class="pbar"><i id="pfill"></i></div></div><div class="cgrid">`+
-  FOODS.map(([name,emo,items],gi)=>`<details class="cat" data-g="${gi}"${openSec[gi]?" open":""}><summary><span class="ce">${emo}</span>${name.replace("&","&amp;")}<small id="cc${gi}"></small><span class="chev">&#9662;</span></summary>`+
-   (name==="Allergens"?`<p class="an">Introduce one at a time, as your pediatrician advises.</p>`:"")+`<ul>`+
-   items.map(s=>{const n=nm(s),e=s.slice(n.length+1);
-    return `<li><label><input type="checkbox" data-n="${n}"${done.has(n)?" checked":""}><span class="box"></span><span class="fe">${e}</span><span class="fn">${n}</span></label></li>`}).join("")+`</ul></details>`).join("")+
-  `</div><p class="count" style="margin-top:14px">Checkmarks are saved in this browser only.</p>`;
+ const gs=allGroups(), anyOpen=gs.some(g=>isOpen(g.name));
+ $("checklist").innerHTML=`<div class="prog"><div class="pt"><span id="ptxt"></span><span><button class="reset" id="ckedit">${edit?"Done editing":"Edit foods"}</button> &nbsp; <button class="reset" id="ckfold">${anyOpen?"Collapse all":"Expand all"}</button> &nbsp; <button class="reset" id="ckreset">Reset</button></span></div><div class="pbar"><i id="pfill"></i></div></div>`+
+  (edit&&hidden.size?`<p class="rest"><button class="reset" id="ckrestore">Restore ${hidden.size} removed food${hidden.size>1?"s":""}</button></p>`:"")+
+  `<div class="cgrid">`+gs.map((g,gi)=>
+   `<details class="cat" data-g="${gi}" data-name="${esc(g.name)}"${isOpen(g.name)?" open":""}><summary><span class="ce">${esc(g.e)}</span>${esc(g.name)}<small id="cc${gi}"></small><span class="chev">&#9662;</span></summary>`+
+   (g.name==="Allergens"?`<p class="an">Introduce one at a time, as your pediatrician advises.</p>`:"")+`<ul>`+
+   itemsOf(g).map(x=>`<li${edit?' class="cu"':""}><label><input type="checkbox" data-n="${esc(x.n)}"${done.has(x.n)?" checked":""}><span class="box"></span><span class="fe">${esc(x.e)}</span><span class="fn">${esc(x.n)}</span></label>${edit?`<button type="button" class="rm" data-g="${gi}" data-b="${x.b?1:0}" data-n="${esc(x.n)}" aria-label="Remove ${esc(x.n)}">&times;</button>`:""}</li>`).join("")+`</ul>`+
+   (edit?`<form class="add" data-g="${gi}"><input class="em" type="text" maxlength="4" placeholder="${esc(g.e)}" aria-label="Emoji (optional)"><input type="text" maxlength="30" placeholder="Add a food" aria-label="Add a food to ${esc(g.name)}"><button type="submit">Add</button></form><span class="msg" id="msg${gi}" role="status"></span>`+
+     (g.cg?`<button type="button" class="reset dg" data-g="${gi}">Delete this group</button>`:""):"")+
+   `</details>`).join("")+`</div>`+
+  (edit?`<div class="addbox"><h3>Add a new group</h3><form class="add addg"><input class="em" type="text" maxlength="4" placeholder="🍽️" aria-label="Group emoji"><input type="text" maxlength="24" placeholder="e.g. Snacks" aria-label="New group name"><button type="submit">Add group</button></form><span class="msg" id="gmsg" role="status"></span></div>`:"")+
+  `<p class="count" style="margin-top:14px">Checkmarks and changes are saved in this browser only.</p>`;
  updateCounts();
 }
 $("checklist").addEventListener("change",e=>{
  const c=e.target.closest("input[data-n]"); if(!c) return;
- c.checked?done.add(c.dataset.n):done.delete(c.dataset.n); saveDone(); updateCounts();
+ c.checked?done.add(c.dataset.n):done.delete(c.dataset.n); saveAll(); updateCounts();
 });
 $("checklist").addEventListener("click",e=>{
- if(e.target.id==="ckreset"&&confirm("Clear all checkmarks?")){done.clear();saveDone();drawChecklist()}
- if(e.target.id==="ckfold"){const any=openSec.some(Boolean);openSec=openSec.map(()=>!any);drawChecklist()}
+ const t=e.target, id=t.id;
+ if(id==="ckedit"){edit=!edit;drawChecklist();return}
+ if(id==="ckreset"&&confirm("Clear all checkmarks? Foods you added or removed will stay.")){done.clear();saveAll();drawChecklist();return}
+ if(id==="ckfold"){const gs=allGroups(),any=gs.some(g=>isOpen(g.name));gs.forEach(g=>openMap[g.name]=!any);drawChecklist();return}
+ if(id==="ckrestore"){hidden.clear();saveAll();drawChecklist();return}
+ const r=t.closest(".rm");
+ if(r){const g=allGroups()[+r.dataset.g],n=r.dataset.n;
+  if(r.dataset.b==="1")hidden.add(n);
+  else{custom[g.name]=(custom[g.name]||[]).filter(x=>x.n!==n);done.delete(n)}
+  saveAll();drawChecklist();return}
+ const d=t.closest(".dg");
+ if(d){const g=allGroups()[+d.dataset.g];
+  if(confirm("Delete the group \""+g.name+"\" and its foods?")){
+   (custom[g.name]||[]).forEach(x=>done.delete(x.n));delete custom[g.name];
+   groups=groups.filter(x=>x.name!==g.name);saveAll();drawChecklist()}}
+});
+const exists=n=>allGroups().some(g=>g.base.some(s=>nm(s).toLowerCase()===n.toLowerCase())||(custom[g.name]||[]).some(x=>x.n.toLowerCase()===n.toLowerCase()));
+const cap=v=>v?v[0].toUpperCase()+v.slice(1):v;
+$("checklist").addEventListener("submit",e=>{
+ e.preventDefault();
+ const f=e.target.closest("form.add"); if(!f) return;
+ const ins=f.querySelectorAll("input"), emo=ins[0].value.trim(), v=cap(ins[1].value.trim().replace(/\s+/g," "));
+ if(!v) return;
+ if(f.classList.contains("addg")){
+  if(allGroups().some(g=>g.name.toLowerCase()===v.toLowerCase())){$("gmsg").textContent=v+" already exists.";return}
+  groups.push({name:v,e:emo||"🍽️"});saveAll();drawChecklist();$("gmsg").textContent="Added the "+v+" group.";return}
+ const gi=+f.dataset.g, g=allGroups()[gi];
+ if(exists(v)){
+  const gone=allGroups().some(x=>x.base.some(s=>nm(s).toLowerCase()===v.toLowerCase()&&hidden.has(nm(s))));
+  $("msg"+gi).textContent=gone?v+" is in your removed foods. Use Restore at the top.":v+" is already on the list.";return}
+ (custom[g.name]=custom[g.name]||[]).push({n:v,e:emo||g.e});
+ saveAll();drawChecklist();
+ $("msg"+gi).textContent="Added "+v+".";
+ const ni=document.querySelector('form.add[data-g="'+gi+'"] input:not(.em)'); if(ni) ni.focus();
 });
 $("checklist").addEventListener("toggle",e=>{
- if(e.target.dataset&&e.target.dataset.g!==undefined){openSec[+e.target.dataset.g]=e.target.open;$("ckfold").textContent=openSec.some(Boolean)?"Collapse all":"Expand all"}
+ const n=e.target.dataset&&e.target.dataset.name;
+ if(n!==undefined){openMap[n]=e.target.open;$("ckfold").textContent=allGroups().some(g=>isOpen(g.name))?"Collapse all":"Expand all"}
 },true);
 drawChecklist();
 
