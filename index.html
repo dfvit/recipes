@@ -46,6 +46,27 @@ ul.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
 .tag{font-size:.78rem;border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--mute)}
 .new{margin-left:8px;font-size:.72rem;font-weight:600;background:var(--accent);color:var(--accent-ink);border-radius:4px;padding:1px 6px;vertical-align:middle}
 .suggest{color:var(--accent);font-weight:600}
+[hidden]{display:none!important}
+.tabs{flex-wrap:wrap}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.cat{background:var(--panel);border:2px solid var(--accent);border-radius:18px;padding:12px 14px}
+.cat h2{margin:0 0 6px;font-size:1.25rem;display:flex;align-items:center;gap:8px}
+.cat h2 small{margin-left:auto;font-size:.78rem;font-weight:600;color:var(--mute)}
+.ce{font-size:1.7rem;line-height:1}
+.cat ul{list-style:none;margin:0;padding:0}
+.cat label{position:relative;display:flex;align-items:center;gap:8px;padding:4px 2px;cursor:pointer;min-height:38px}
+.cat input{position:absolute;opacity:0;width:22px;height:22px;margin:0}
+.box{width:22px;height:22px;border:2px solid var(--accent);border-radius:7px;flex:none;display:grid;place-items:center;background:var(--bg)}
+input:checked+.box{background:var(--accent)}
+input:checked+.box::after{content:"\2713";color:var(--accent-ink);font-weight:800;font-size:.9rem;line-height:1}
+input:focus-visible+.box{outline:3px solid var(--accent);outline-offset:2px}
+input:checked~.fn{color:var(--mute)}
+.fe{width:1.5em;text-align:center}
+.an{margin:0 0 6px;font-size:.82rem;color:var(--mute)}
+.prog{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:14px}
+.pt{display:flex;justify-content:space-between;align-items:center;font-weight:600;margin-bottom:8px}
+.pbar{height:12px;background:var(--line);border-radius:99px;overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .3s}
 .empty{padding:30px 0;color:var(--mute)}
 footer{margin-top:36px;color:var(--mute);font-size:.85rem}
 @media(max-width:480px){.r{grid-template-columns:62px 1fr;gap:12px}}
@@ -60,6 +81,7 @@ footer{margin-top:36px;color:var(--mute);font-size:.85rem}
 <div class="tabs" role="tablist">
   <button class="tab" role="tab" id="tab-adult" aria-selected="true" data-sec="adult">Everyday meals</button>
   <button class="tab" role="tab" id="tab-baby" aria-selected="false" data-sec="baby">Starting solids (baby)</button>
+  <button class="tab" role="tab" id="tab-checklist" aria-selected="false" data-sec="checklist">100 first foods</button>
 </div>
 
 <div id="babynote" class="note" hidden>
@@ -67,8 +89,9 @@ footer{margin-top:36px;color:var(--mute);font-size:.85rem}
   Most babies begin solids around 6 months, when they sit with support and show interest in food. Check with your pediatrician first. No honey before age 1, no added salt or sugar, and cut foods to a safe size and texture for your baby's stage. Introduce common allergens (egg, peanut, fish) as your pediatrician advises.
 </div>
 
+<div id="checklist" hidden></div>
 <div id="filters"></div>
-<div class="bar"><span class="count" id="count" aria-live="polite"></span><span><a class="suggest" id="suggest" href="#" target="_blank" rel="noopener">Suggest a recipe</a> &nbsp; <button class="reset" id="reset">Clear filters</button></span></div>
+<div class="bar" id="bar"><span class="count" id="count" aria-live="polite"></span><span><a class="suggest" id="suggest" href="#" target="_blank" rel="noopener">Suggest a recipe</a> &nbsp; <button class="reset" id="reset">Clear filters</button></span></div>
 <ul class="list" id="list"></ul>
 
 <footer>Recipes belong to their original authors; every link goes to the source site. New recipes are added from approved suggestions.</footer>
@@ -132,10 +155,53 @@ $("reset").addEventListener("click",build);
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
  sec=t.dataset.sec;
  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));
- document.body.classList.toggle("baby",sec==="baby");
+ document.body.classList.toggle("baby",sec==="baby"||sec==="checklist");
  $("babynote").hidden=sec!=="baby";
- build();
+ const ck=sec==="checklist";
+ ["checklist"].forEach(i=>$(i).hidden=!ck);
+ ["filters","bar","list"].forEach(i=>$(i).hidden=ck);
+ if(!ck)build();
 }));
+/* ---------- 100 FIRST FOODS CHECKLIST ---------- */
+const FOODS=[
+["Vegetables","🥦",["Asparagus 🌱","Beet 🔴","Bell pepper 🫑","Broccoli 🥦","Butternut squash 🎃","Cabbage 🥬","Carrot 🥕","Cauliflower 🤍","Corn 🌽","Cucumber 🥒","Eggplant 🍆","Green bean 🌿","Kale 🥬","Mushroom 🍄","Parsnip 🤍","Pea 🟢","Potato 🥔","Pumpkin 🎃","Spinach 🍃","Sweet potato 🍠","Zucchini 🥒"]],
+["Grains","🌾",["Bread 🍞","Buckwheat 🌾","Cornmeal 🌽","Couscous 🍚","Gnocchi 🥟","Noodles 🍜","Oats 🥣","Pasta 🍝","Quinoa 🌾","Rice 🍚"]],
+["Protein","🍗",["Beef 🥩","Chia seeds ⚫","Chicken 🍗","Chickpeas 🫘","Cod 🐟","Flaxseeds 🌱","Haddock 🐟","Kidney beans 🫘","Lamb 🐑","Lentils 🫘","Pork 🐷","Salmon 🍣","Shrimp 🦐","Trout 🐟","Tuna 🐟","Turkey 🦃","White beans 🫘"]],
+["Fruit","🍓",["Apple 🍎","Apricot 🍑","Avocado 🥑","Banana 🍌","Blackberry 🍇","Blueberry 🫐","Cherry 🍒","Grape 🍇","Kiwi 🥝","Lemon 🍋","Mandarin 🍊","Mango 🥭","Melon 🍈","Nectarine 🍑","Orange 🍊","Peach 🍑","Pear 🍐","Pineapple 🍍","Plum 🟣","Prune 🟤","Raspberry 🍓","Strawberry 🍓","Tomato 🍅","Watermelon 🍉"]],
+["Dairy","🧀",["Butter 🧈","Cheddar 🧀","Cream cheese 🧀","Greek yogurt 🥛","Mozzarella 🧀","Ricotta 🧀"]],
+["Herbs & Spices","🌿",["Basil 🌿","Cilantro 🌿","Cinnamon 🟤","Curry powder 🍛","Dill 🌿","Garlic 🧄","Lemongrass 🌾","Mint 🍃","Nutmeg 🟤","Onion 🧅","Paprika 🌶️","Parsley 🌿","Rosemary 🌿","Turmeric 🟡"]],
+["Allergens","🥚",["Cow's milk 🥛","Egg 🥚","Peanut 🥜","Sesame ⚪","Shellfish 🦐","Soy 🫘","Tree nuts 🌰","Wheat 🌾"]]];
+const KEY="firstFoodsChecked", TOTAL=FOODS.reduce((n,g)=>n+g[2].length,0);
+const nm=s=>s.slice(0,s.lastIndexOf(" "));
+let done=new Set();
+try{done=new Set(JSON.parse(localStorage.getItem(KEY)||"[]"))}catch(e){}
+Object.entries({"Aubergine": "Eggplant", "Beetroot": "Beet", "Courgette": "Zucchini", "Sweetcorn": "Corn", "Satsuma": "Mandarin", "Coriander": "Cilantro"}).forEach(([o,n])=>{if(done.delete(o))done.add(n)});
+const saveDone=()=>{try{localStorage.setItem(KEY,JSON.stringify([...done]))}catch(e){}};
+function updateCounts(){
+ const n=FOODS.reduce((t,g)=>t+g[2].filter(s=>done.has(nm(s))).length,0);
+ $("ptxt").textContent=n===TOTAL?"🎉 All "+TOTAL+" foods tried!":n+" of "+TOTAL+" foods tried";
+ $("pfill").style.width=(n/TOTAL*100)+"%";
+ FOODS.forEach(([,,items],gi)=>{const c=items.filter(s=>done.has(nm(s))).length;
+  $("cc"+gi).textContent=c===items.length?"🎉 all tried!":c+"/"+items.length});
+}
+function drawChecklist(){
+ $("checklist").innerHTML=`<div class="prog"><div class="pt"><span id="ptxt"></span><button class="reset" id="ckreset">Reset</button></div><div class="pbar"><i id="pfill"></i></div></div><div class="cgrid">`+
+  FOODS.map(([name,emo,items],gi)=>`<section class="cat"><h2><span class="ce">${emo}</span>${name.replace("&","&amp;")}<small id="cc${gi}"></small></h2>`+
+   (name==="Allergens"?`<p class="an">Introduce one at a time, as your pediatrician advises.</p>`:"")+`<ul>`+
+   items.map(s=>{const n=nm(s),e=s.slice(n.length+1);
+    return `<li><label><input type="checkbox" data-n="${n}"${done.has(n)?" checked":""}><span class="box"></span><span class="fe">${e}</span><span class="fn">${n}</span></label></li>`}).join("")+`</ul></section>`).join("")+
+  `</div><p class="count" style="margin-top:14px">Checkmarks are saved in this browser only.</p>`;
+ updateCounts();
+}
+$("checklist").addEventListener("change",e=>{
+ const c=e.target.closest("input[data-n]"); if(!c) return;
+ c.checked?done.add(c.dataset.n):done.delete(c.dataset.n); saveDone(); updateCounts();
+});
+$("checklist").addEventListener("click",e=>{
+ if(e.target.id==="ckreset"&&confirm("Clear all checkmarks?")){done.clear();saveDone();drawChecklist()}
+});
+drawChecklist();
+
 const [o,rp]=REPO_OVERRIDE?REPO_OVERRIDE.split("/"):[location.hostname.split(".")[0],location.pathname.split("/")[1]||location.hostname.split(".")[0]+".github.io"];
 $("suggest").href=`https://github.com/${o}/${rp}/issues/new?template=add-recipe.yml`;
 fetch("recipes.json",{cache:"no-cache"}).then(r=>r.json()).then(j=>{RECIPES=j;build()})
